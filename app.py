@@ -135,13 +135,9 @@ def build_ui() -> gr.Blocks:
     return demo
 
 
-def main() -> None:
-    """Entry point: build and launch the Gradio app."""
-    demo = build_ui()
-    port = int(os.environ.get("GRADIO_SERVER_PORT", "7860"))
-    logger.info("Launching Gradio on port %d", port)
-    demo.launch(server_port=port)
-
+# Module-level demo for HF Spaces
+demo = build_ui()
 
 if __name__ == "__main__":
-    main()
+    port = int(os.environ.get("GRADIO_SERVER_PORT", "7860"))
+    demo.launch(server_port=port)
