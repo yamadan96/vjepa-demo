@@ -184,20 +184,21 @@ class Predictor:
         # Attention rollout: multiply attention matrices across layers
         rollout = self._attention_rollout(attentions)
 
-        # rollout shape: (num_tokens, num_tokens) including CLS token
-        # Average attention from visible patches to masked patches
-        # +1 offset for CLS token
+        # rollout shape: (num_tokens, num_tokens)
+        # Some ViT variants include CLS token (seq_len = patches+1),
+        # others do not (seq_len = patches). Detect dynamically.
         total_patches = num_patches_per_side * num_patches_per_side
+        has_cls = rollout.shape[0] == total_patches + 1
         visible_indices = np.setdiff1d(np.arange(total_patches), masked_indices)
 
-        # Attention from visible patches to all patches (skip CLS at index 0)
-        # Shape: (num_visible, total_patches)
         if len(visible_indices) > 0:
-            attn_from_visible = rollout[visible_indices + 1, 1:]
-            # Average across visible source patches
+            if has_cls:
+                attn_from_visible = rollout[visible_indices + 1, 1:]
+            else:
+                attn_from_visible = rollout[visible_indices, :]
             avg_attn = attn_from_visible.mean(axis=0)
         else:
-            avg_attn = rollout[0, 1:]
+            avg_attn = rollout[0, 1:] if has_cls else rollout.mean(axis=0)
 
         # Reshape to spatial grid
         attn_grid = avg_attn.reshape(num_patches_per_side, num_patches_per_side)
