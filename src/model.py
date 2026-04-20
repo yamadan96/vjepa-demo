@@ -36,7 +36,7 @@ def load_model(device: str = "cuda") -> tuple[PreTrainedModel, BaseImageProcesso
         processor = AutoProcessor.from_pretrained(MODEL_ID)
         model = AutoModel.from_pretrained(
             MODEL_ID,
-            attn_implementation="sdpa",
+            attn_implementation="eager",
         )
         model = model.to(device)
         model.eval()
